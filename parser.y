@@ -46,47 +46,56 @@ Absyn *progTree;
 %debug
 
 %token CLASS
-%token ARRAY
-%token ELSE
-%token IF
-%token OF
-%token PROC
-%token REF
-%token TYPE
-%token VAR
-%token WHILE
-%token LPAREN
-%token RPAREN
-%token LBRACK
-%token RBRACK
+%token EQ
 %token LCURL
 %token RCURL
-%token EQ
-%token NE
-%token LT
-%token LE
-%token GT
-%token GE
-%token ASGN
-%token COLON
 %token COMMA
 %token SEMIC
 %token PLUS
 %token MINUS
-%token STAR
-%token SLASH
+%token LBRACK
+%token RBRACK
 %token IDENT
-%token INTLIT
+%token NUMBERLIT_DEC
+%token NUMBERLIT_HEX
+%token STRINGLIT
 
-
-%type<intVal> INTLIT
 %type<sym> name
-%type<absyn> start program typedeflist typedef function typ paramlist paramlist1 param deklarationlist deklaration statemantlist statemant lhs rhs procedurecall argumentlist argumentlist1 exp boolexp mathexp term faktor var intexp varexp
+%type<absyn> start deklarationlist deklarationlist1 deklaration value stringlist valuelist valuelist1
 
 %start			start
 
 %%
 
+start : deklarationlist { progTree = $1; }
+
+deklarationlist : /*empty*/
+                | deklarationlist1
+
+deklarationlist1 : deklaration
+                 | deklaration deklarationlist1
+
+deklaration : name EQ value SEMIC /* normal parameter */ { $$ = newEmptyStm(yylval.noVal.line); }
+            | CLASS name LCURL deklarationlist RCURL SEMIC
+            | name LBRACK RBRACK EQ LCURL valuelist RCURL SEMIC
+
+
+name : IDENT
+
+value : NUMBERLIT_DEC
+      | NUMBERLIT_HEX
+      | stringlist
+
+stringlist : STRINGLIT
+           | STRINGLIT stringlist
+
+valuelist : /*empty*/
+          | valuelist1
+
+valuelist1 : value
+           | value COMMA valuelist1
+
+/*
 start			:       program { progTree = $1; }
 
 program			: 	typedef program { $$ = newDecList( $1,$2 ); }
@@ -114,7 +123,7 @@ function		: 	PROC name LPAREN paramlist RPAREN LCURL deklarationlist statemantli
 
 			;
 
-paramlist		:	/* empty */ { $$ = emptyDecList();}
+paramlist		:	 { $$ = emptyDecList();}
 				| paramlist1 { $$ = $1; }
 			;
 
@@ -126,23 +135,23 @@ param			:   	name COLON typ { $$ = newParDec(yylval.noVal.line,$1,$3,FALSE); }
 				| REF name COLON typ { $$ = newParDec(yylval.noVal.line,$2,$4,TRUE); }
 			;
 
-deklarationlist		: 	/* empty */ { $$ = emptyDecList(); }
+deklarationlist		: 	 { $$ = emptyDecList(); }
 				| deklaration deklarationlist { $$ = newDecList($1,$2); }
 			;
 
 deklaration		: VAR name COLON typ SEMIC { $$ = newVarDec(yylval.noVal.line, $2, $4); }
 			;
 
-statemantlist		:	/* empty */ { $$ = emptyStmList(); }
+statemantlist		:	 { $$ = emptyStmList(); }
 				|  statemant statemantlist { $$ = newStmList($1,$2); }
 			;
 
-statemant		:	SEMIC /* die leere Anweisung */ { $$ = newEmptyStm(yylval.noVal.line); }
-				| lhs ASGN rhs SEMIC /* Zuweisung */ { $$ = newAssignStm(yylval.noVal.line,$1,$3); }
-				| IF LPAREN exp RPAREN statemant /* Einarmiges IF */ { $$ = newIfStm(yylval.noVal.line,$3,$5,newEmptyStm(yylval.noVal.line)); }
-				| IF LPAREN exp RPAREN statemant ELSE statemant /* Zweiarmiges IF */ { $$ = newIfStm(yylval.noVal.line,$3,$5,$7); }
-				| WHILE LPAREN exp RPAREN statemant /* abweisende Schleife */ { $$ = newWhileStm(yylval.noVal.line,$3,$5); }
-				| LCURL statemantlist RCURL /* Anweisungsblock */ { $$ = newCompStm(yylval.noVal.line,$2); }
+statemant		:	SEMIC  { $$ = newEmptyStm(yylval.noVal.line); }
+				| lhs ASGN rhs SEMIC  { $$ = newAssignStm(yylval.noVal.line,$1,$3); }
+				| IF LPAREN exp RPAREN statemant { $$ = newIfStm(yylval.noVal.line,$3,$5,newEmptyStm(yylval.noVal.line)); }
+				| IF LPAREN exp RPAREN statemant ELSE statemant { $$ = newIfStm(yylval.noVal.line,$3,$5,$7); }
+				| WHILE LPAREN exp RPAREN statemant { $$ = newWhileStm(yylval.noVal.line,$3,$5); }
+				| LCURL statemantlist RCURL  { $$ = newCompStm(yylval.noVal.line,$2); }
 				| procedurecall SEMIC { $$ = $1; }
 			;
 
@@ -157,7 +166,7 @@ rhs			:	exp { $$ = $1; }
 procedurecall		:	name LPAREN argumentlist RPAREN { $$ = newCallStm(yylval.noVal.line,$1,$3); }
 			;
 
-argumentlist		:	/* empty */ { $$ = emptyExpList(); }
+argumentlist		:	 { $$ = emptyExpList(); }
 				| argumentlist1 { $$ = $1; }
 			;
 
@@ -201,6 +210,8 @@ var			: 	name { $$ = newSimpleVar(yylval.noVal.line,$1); }
 			;
 
 intexp		: 	INTLIT { $$ = newIntExp(yylval.noVal.line,$1.val); }
+*/
+
 //
 //				{
 //					int intvalue = 0;

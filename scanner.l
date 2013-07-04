@@ -31,12 +31,10 @@ LCURL       \{
 RCURL       \}
 COMMA       ,
 SEMIC       ;
-PLUS        \+
-MINUS       -
 LBRACK      \[
 RBRACK      \]
 IDENT       [a-zA-Z_][a-zA-Z0-9_]*
-NUMBERLIT_DEC  [0-9]+("."[0-9]+([eE][-+]?[0-9]+)?)?
+NUMBERLIT_DEC  [-+]?[0-9]+("."[0-9]+([eE][-+]?[0-9]+)?)?
 NUMBERLIT_HEX  0x[a-fA-F0-9]+
 STRINGLIT   "\"".*"\""
 WHITESPACE  [ \t]+
@@ -56,24 +54,22 @@ ANYCHAR     .
 {RCURL}         TKRETURN(RCURL);
 {COMMA}         TKRETURN(COMMA);
 {SEMIC}         TKRETURN(SEMIC);
-{PLUS}          TKRETURN(PLUS);
-{MINUS}         TKRETURN(MINUS);
 {LBRACK}        TKRETURN(LBRACK);
 {RBRACK}        TKRETURN(RBRACK);
-{IDENT}         {	
-                  yylval.StringVal.val = yytext;
+{IDENT}         {
+                  yylval.stringVal.val = yytext;
                   TKRETURN(IDENT);
                 }
-{NUMBERLIT_DEC} {	
-                  yylval.StringVal.val = yytext;
-                  TKRETURN(NUMBERLIT_DEC); 
+{NUMBERLIT_DEC} {
+                  yylval.stringVal.val = yytext;
+                  TKRETURN(NUMBERLIT_DEC);
                 }
-{NUMBERLIT_HEX} {	
-                  yylval.StringVal.val = yytext;
-                  TKRETURN(NUMBERLIT_HEX); 
+{NUMBERLIT_HEX} {
+                  yylval.stringVal.val = yytext;
+                  TKRETURN(NUMBERLIT_HEX);
                 }
-{STRINGLIT}     {	
-                  yylval.StringVal.val = yytext;
+{STRINGLIT}     {
+                  yylval.stringVal.val = yytext;
                   TKRETURN(STRINGLIT);
                 }
 {ANYCHAR}       { error("\nFehler in Zeile %d: Ungueltiges Zeichen 0x%X \n",lineNumber,yytext[0]); }
@@ -103,10 +99,6 @@ void showToken(int token) {
 		case COMMA: printf(" COMMA ");
 					break;
 		case SEMIC: printf(" SEMIC \n");
-					break;
-		case PLUS:  printf(" PLUS ");
-					break;
-		case MINUS: printf(" MINUS ");
 					break;
 	    case LBRACK: printf(" LBRACK");
 					break;

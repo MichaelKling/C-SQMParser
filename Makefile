@@ -15,7 +15,7 @@ BIN = sqmParser
 
 .PHONY:		all depend clean dist-clean
 
-all:		depend $(BIN)
+all: depend $(BIN)
 
 $(BIN):		$(OBJS)
 		$(CC) $(LDFLAGS) -o $@ $^ $(LDLIBS)
@@ -32,11 +32,15 @@ lex.yy.c:	scanner.l
 
 -include depend.mak
 
-depend:		parser.tab.c lex.yy.c
+depend:	parser.tab.c lex.yy.c
 		$(CC) $(CFLAGS) -MM $(SRCS) > depend.mak
 
 clean:
 		rm -f *~ *.o
+		rm lex.yy.c
+		rm parser.tab.c
 
 dist-clean:	clean
 		rm -f $(BIN) parser.tab.c parser.tab.h lex.yy.c depend.mak
+
+cleanall: dist-clean

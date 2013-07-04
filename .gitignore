@@ -2,10 +2,13 @@ pboExtractor
 *.sqm
 *.exe
 *.o
+*.depend
+/sqmParser
 /cpboExtractor.cbp
 /depend.mak
 /csqmParser.cbp
 /csqmParser.layout
 /parser.tab.h
+/parser.tab.c
 /lex.yy.c
 /parser.output
