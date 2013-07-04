@@ -15,7 +15,7 @@
         
         char *classnamesGetNatoAlphabet(int number);
         int classnamesGetNatoAlpabetSize();
-        struct Roles classnamesGetPlayerRoles(char *role);
+        void classnamesGetPlayerRoles(char *role, Roles *roles);
         char *classnamesGetRank(char *rank);
         char *classnamesGetRankShort(char *rank);
 #endif /* _CLASSNAMES_H_ */        
