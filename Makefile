@@ -9,7 +9,7 @@ CFLAGS = -Wall -Wno-unused -g
 LDFLAGS = -g
 LDLIBS = -lm
 # semant.c varalloc.c codegen.c
-SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c types.c table.c
+SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c types.c table.c classnames/classnames.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 BIN = sqmParser
 
