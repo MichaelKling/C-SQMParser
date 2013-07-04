@@ -1769,30 +1769,30 @@ void classnamesGetPlayerRoles(char *role, Roles *roles) {
 	roles->Driver = FALSE;
 	roles->Gunner = FALSE;
 	if (FALSE) {
-	} else if (strcmp(role,"PLAY CDG") == 0)) {
+	} else if (strcmp(role,"PLAY CDG") == 0) {
 		roles->Commander = TRUE;
 		roles->Driver = TRUE;
 		roles->Gunner = TRUE;
-	} else if (strcmp(role,"PLAY CG") == 0)) {
+	} else if (strcmp(role,"PLAY CG") == 0) {
 		roles->Commander = TRUE;
 		roles->Gunner = TRUE;
-	} else if (strcmp(role,"PLAY CD") == 0)) {
+	} else if (strcmp(role,"PLAY CD") == 0) {
 		roles->Commander = TRUE;
 		roles->Driver = TRUE;
-	} else if (strcmp(role,"PLAY DG") == 0)) {
+	} else if (strcmp(role,"PLAY DG") == 0) {
 		roles->Driver = TRUE;
 		roles->Gunner = TRUE;
-	} else if (strcmp(role,"PLAYER DRIVER") == 0)) {
+	} else if (strcmp(role,"PLAYER DRIVER") == 0) {
 		roles->Driver = TRUE;
-	} else if (strcmp(role,"PLAY D") == 0)) {
+	} else if (strcmp(role,"PLAY D") == 0) {
 		roles->Driver = TRUE;
-	} else if (strcmp(role,"PLAYER GUNNER") == 0)) {
+	} else if (strcmp(role,"PLAYER GUNNER") == 0) {
 		roles->Gunner = TRUE;
-	} else if (strcmp(role,"PLAY G") == 0)) {
+	} else if (strcmp(role,"PLAY G") == 0) {
 		roles->Gunner = TRUE;
-	} else if (strcmp(role,"PLAYER COMMANDER") == 0)) {
+	} else if (strcmp(role,"PLAYER COMMANDER") == 0) {
 		roles->Commander = TRUE;
-	} else if (strcmp(role,"PLAY C") == 0)) {
+	} else if (strcmp(role,"PLAY C") == 0) {
 		roles->Commander = TRUE;
 	}
 
@@ -1800,19 +1800,19 @@ void classnamesGetPlayerRoles(char *role, Roles *roles) {
 
 char *classnamesGetRank(char *rank) {
 	if (FALSE) {
-	} else if (strcmp(rank,"PRIVATE") == 0)) {
+	} else if (strcmp(rank,"PRIVATE") == 0) {
 		return "Private";
-	} else if (strcmp(rank,"CORPORAL") == 0)) {
+	} else if (strcmp(rank,"CORPORAL") == 0) {
 		return "Corporal";
-	} else if (strcmp(rank,"SERGEANT") == 0)) {
+	} else if (strcmp(rank,"SERGEANT") == 0) {
 		return "Sergeant";
-	} else if (strcmp(rank,"LIEUTENANT") == 0)) {
+	} else if (strcmp(rank,"LIEUTENANT") == 0) {
 		return "Lieutnant";
-	} else if (strcmp(rank,"CAPTAIN") == 0)) {
+	} else if (strcmp(rank,"CAPTAIN") == 0) {
 		return "Captain";
-	} else if (strcmp(rank,"MAJOR") == 0)) {
+	} else if (strcmp(rank,"MAJOR") == 0) {
 		return "Major";
-	} else if (strcmp(rank,"COLONEL") == 0)) {
+	} else if (strcmp(rank,"COLONEL") == 0) {
 		return "Colonel";
 	}
 	return rank;
@@ -1821,19 +1821,19 @@ char *classnamesGetRank(char *rank) {
 
 char *classnamesGetRankShort(char *rank) {
 	if (FALSE) {
-	} else if (strcmp(rank,"PRIVATE") == 0)) {
+	} else if (strcmp(rank,"PRIVATE") == 0) {
 		return "Pvt.";
-	} else if (strcmp(rank,"CORPORAL") == 0)) {
+	} else if (strcmp(rank,"CORPORAL") == 0) {
 		return "Cpl.";
-	} else if (strcmp(rank,"SERGEANT") == 0)) {
+	} else if (strcmp(rank,"SERGEANT") == 0) {
 		return "Sgt.";
-	} else if (strcmp(rank,"LIEUTENANT") == 0)) {
+	} else if (strcmp(rank,"LIEUTENANT") == 0) {
 		return "Ltn.";
-	} else if (strcmp(rank,"CAPTAIN") == 0)) {
+	} else if (strcmp(rank,"CAPTAIN") == 0) {
 		return "Ctn.";
-	} else if (strcmp(rank,"MAJOR") == 0)) {
+	} else if (strcmp(rank,"MAJOR") == 0) {
 		return "Mjr.";
-	} else if (strcmp(rank,"COLONEL") == 0)) {
+	} else if (strcmp(rank,"COLONEL") == 0) {
 		return "Cnl.";
 	}
 	return rank;
