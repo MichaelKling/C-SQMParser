@@ -8,8 +8,8 @@ FLEX = flex
 CFLAGS = -Wall -Wno-unused -g
 LDFLAGS = -g
 LDLIBS = -lm
-
-SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c semant.c types.c table.c varalloc.c codegen.c
+# semant.c varalloc.c codegen.c
+SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c types.c table.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 BIN = sqmParser
 

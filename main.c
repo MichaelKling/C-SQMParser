@@ -30,7 +30,7 @@ static void version(char *myself) {
 
 static void help(char *myself) {
   /* show some help how to use the program */
-  printf("Usage: %s [options] <input file> <output file>\n", myself);
+  printf("Usage: %s [options] [<input file> [<output file>]]\n", myself);
   printf("Options:\n");
   printf("  --tokens         show stream of tokens\n");
   printf("  --absyn          show abstract syntax\n");
@@ -38,6 +38,8 @@ static void help(char *myself) {
   printf("  --vars           show variable allocation\n");
   printf("  --version        show compiler version\n");
   printf("  --help           show this help\n");
+  printf("  --file <input file> pbo file to read from. (Default is stdin)\n");
+  printf("  --output <output file>   file to save the extracted file to (Default is stdout)\n");
 }
 
 
@@ -53,6 +55,9 @@ int main(int argc, char *argv[]) {
   Table *globalTable;
   FILE *outFile;
 
+  boolean optionReadStdIn;
+  boolean optionWriteStdOut;
+
   /* analyze command line */
   inFileName = NULL;
   outFileName = NULL;
@@ -63,6 +68,24 @@ int main(int argc, char *argv[]) {
   for (i = 1; i < argc; i++) {
     if (argv[i][0] == '-') {
       /* option */
+      if (strcmp(argv[i], "--file") == 0) {
+        optionReadStdIn = FALSE;
+        i++;
+        if (i < argc) {
+            inFileName = argv[i];
+        } else {
+            error("no input file");
+        }
+      } else
+      if (strcmp(argv[i], "--output") == 0) {
+        optionWriteStdOut = FALSE;
+        i++;
+        if (i < argc) {
+            outFileName = argv[i];
+        } else {
+            error("no output file");
+        }
+      } else
       if (strcmp(argv[i], "--tokens") == 0) {
         optionTokens = TRUE;
       } else
@@ -93,18 +116,25 @@ int main(int argc, char *argv[]) {
       }
       if (inFileName != NULL) {
         outFileName = argv[i];
+        optionReadStdIn = FALSE;
       } else {
         inFileName = argv[i];
+        optionWriteStdOut = FALSE;
       }
     }
   }
-  if (inFileName == NULL) {
+  if (optionReadStdIn == FALSE && inFileName == NULL) {
     error("no input file");
   }
-  if (outFileName == NULL) {
+  if (optionWriteStdOut == FALSE && outFileName == NULL) {
     error("no output file");
   }
-  yyin = fopen(inFileName, "r");
+
+  if (optionReadStdIn) {
+    yyin = stdin;
+  } else {
+    yyin = fopen(inFileName, "r");
+  }
   if (yyin == NULL) {
     error("cannot open input file '%s'", inFileName);
   }
@@ -116,21 +146,27 @@ int main(int argc, char *argv[]) {
     fclose(yyin);
     exit(0);
   }
-  //yyparse();
+  yyparse();
   fclose(yyin);
-  /*
+
   if (optionAbsyn) {
     showAbsyn(progTree);
     exit(0);
-  }
+  }/*
   globalTable = check(progTree, optionTables);
   allocVars(progTree, globalTable, optionVars);
-  outFile = fopen(outFileName, "w");
+  */
+  if (optionWriteStdOut) {
+    outFile = stdout;
+  } else {
+    outFile = fopen(outFileName, "w");
+  }
   if (outFile == NULL) {
     error("cannot open output file '%s'", outFileName);
   }
+  /*
   genCode(progTree, globalTable, outFile);
-  fclose(outFile);
   */
+  fclose(outFile);
   return 0;
 }

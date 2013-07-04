@@ -61,39 +61,44 @@ Absyn *progTree;
 %token STRINGLIT
 
 %type<sym> name
-%type<absyn> start deklarationlist deklarationlist1 deklaration value stringlist valuelist valuelist1
+%type<absyn> start declarationlist declarationlist1 declaration stringlist valuelist valuelist1 numval string
 
 %start			start
 
 %%
 
-start : deklarationlist { progTree = $1; }
+start : declarationlist { progTree = $1; }
 
-deklarationlist : /*empty*/
-                | deklarationlist1
+declarationlist : /*empty*/ { $$ = emptyDecList();}
+                | declarationlist1 { $$ = $1; }
 
-deklarationlist1 : deklaration
-                 | deklaration deklarationlist1
+declarationlist1 : declaration { $$ = newDecList($1,emptyDecList()); }
+                 | declaration declarationlist1 { $$ = newDecList($1,$2); }
 
-deklaration : name EQ value SEMIC /* normal parameter */ { $$ = newEmptyStm(yylval.noVal.line); }
-            | CLASS name LCURL deklarationlist RCURL SEMIC
-            | name LBRACK RBRACK EQ LCURL valuelist RCURL SEMIC
+declaration : name EQ numval SEMIC { $$ = newNumTy(yylval.noVal.line,$1,$3); }
+            | name EQ stringlist SEMIC { $$ = newStrTy(yylval.noVal.line,$1,$3); }
+            | CLASS name LCURL declarationlist RCURL SEMIC { $$ = newClassTy(yylval.noVal.line,$2,$4); }
+            | name LBRACK RBRACK EQ LCURL valuelist RCURL SEMIC { $$ = newArrayTy(yylval.noVal.line,$1,$6); }
 
 
-name : IDENT
+name : IDENT { $$ = newSym(yytext); }
 
-value : NUMBERLIT_DEC
-      | NUMBERLIT_HEX
-      | stringlist
+numval : NUMBERLIT_DEC { $$ = newNum(yylval.noVal.line,newSym(yytext)); }
+       | NUMBERLIT_HEX { $$ = newNum(yylval.noVal.line,newSym(yytext)); }
 
-stringlist : STRINGLIT
-           | STRINGLIT stringlist
+stringlist : string { $$ = newStrList($1,emptyStrList()); }
+           | string stringlist { $$ = newStrList($1,$2); }
 
-valuelist : /*empty*/
-          | valuelist1
+string : STRINGLIT { $$ = newStr(yylval.noVal.line,newSym(yytext)); }
 
-valuelist1 : value
-           | value COMMA valuelist1
+valuelist : /*empty*/ { $$ = emptyValList();}
+          | valuelist1 { $$ = $1; }
+
+valuelist1 : stringlist { $$ = newValList($1,emptyValList()); }
+           | stringlist COMMA valuelist1 { $$ = newValList($1,$3); }
+           | numval  { $$ = newValList($1,emptyValList()); }
+           | numval COMMA valuelist1 { $$ = newValList($1,$3); }
+
 
 /*
 start			:       program { progTree = $1; }
