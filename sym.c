@@ -106,6 +106,12 @@ static void growTable(void) {
   hashSize = newHashSize;
 }
 
+Sym *newTypedSym(char *string,char *value,unsigned type)  {
+    Sym *sym = newSym(string);
+    sym->value = value;
+    sym->type = type;
+    return sym;
+}
 
 Sym *newSym(char *string) {
   unsigned hashValue;
@@ -142,6 +148,10 @@ Sym *newSym(char *string) {
   stamp += 0x9E3779B9;  /* Fibonacci hashing, see Knuth Vol. 3 */
   p->hashValue = hashValue;
   p->next = buckets[n];
+
+  p->value = NULL;
+  p->type = SYM_NOTYPE;
+
   buckets[n] = p;
   numEntries++;
   return p;
@@ -152,6 +162,17 @@ char *symToString(Sym *sym) {
   return sym->string;
 }
 
+char *symToValue(Sym *sym) {
+  if (sym->value) {
+    return sym->value;
+  } else {
+    return sym->string;
+  }
+}
+
+unsigned symToType(Sym *sym) {
+  return sym->type;
+}
 
 unsigned symToStamp(Sym *sym) {
   return sym->stamp;
