@@ -12,28 +12,33 @@
 #include "types.h"
 #include "sym.h"
 
+static void indent(int n) {
+  int i;
 
-void showSideEntry(Entry *side) {
-    printf("\tGroupIDCounter  : %d\n",side->u.sideEntry.groupIdCounter);
-    showTable(side->u.sideEntry.groupTable);
+  for (i = 0; i < n; i++) {
+    printf("  ");
+  }
 }
 
-void showGroupEntry(Entry *group) {
-    printf("\tGroupID         : %d\n",group->u.groupEntry.groupId);
-    printf("\tGroupIDSecId    : %d\n",group->u.groupEntry.groupSecondaryId);
-    showTable(group->u.groupEntry.unitTable);
+void showSideEntry(Entry *side, int n) {
+    indent(n);printf("GroupIDCounter  : %d\n",side->u.sideEntry.groupIdCounter);
+    showTable(side->u.sideEntry.groupTable,++n);
 }
 
-void showUnitEntry(Entry *unit) {
-    printf("\tGroupID         : %d\n",unit->u.unitEntry.groupId);
-    printf("\tUnitId          : %s\n",unit->u.unitEntry.unitId);
-    printf("\tRankName        : %s\n",unit->u.unitEntry.rankName);
-    printf("\tRankShortName   : %s\n",unit->u.unitEntry.rankShortName);
-    printf("\tClass           : %s\n",symToString(unit->u.unitEntry.classname));
-    printf("\tClassname       : %s\n",symToValue(unit->u.unitEntry.classname));
-    printf("\tisLeader        : %d\n",unit->u.unitEntry.isLeader);
-    printf("\tdescription     : %s\n",unit->u.unitEntry.description);
-    printf("\tposition        : %s\n",unit->u.unitEntry.position);
+void showGroupEntry(Entry *group, int n) {
+    indent(n);printf("GroupID         : %d\n",group->u.groupEntry.groupId);
+    showTable(group->u.groupEntry.unitTable,++n);
+}
+
+void showUnitEntry(Entry *unit, int n) {
+    indent(n);printf("UnitId          : %s\n",unit->u.unitEntry.unitId);
+    indent(n);printf("RankName        : %s\n",unit->u.unitEntry.rankName);
+    indent(n);printf("RankShortName   : %s\n",unit->u.unitEntry.rankShortName);
+    indent(n);printf("Class           : %s\n",symToString(unit->u.unitEntry.classname));
+    indent(n);printf("Classname       : %s\n",symToValue(unit->u.unitEntry.classname));
+    indent(n);printf("isLeader        : %d\n",unit->u.unitEntry.isLeader);
+    indent(n);printf("description     : %s\n",unit->u.unitEntry.description);
+    indent(n);printf("position        : %s\n",unit->u.unitEntry.position);
 }
 
 

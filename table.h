@@ -17,7 +17,6 @@ typedef struct {
   int kind;
   union {
     struct {
-      int groupId;
       char *unitId;
       char *rankName;
       char *rankShortName;
@@ -28,7 +27,6 @@ typedef struct {
     } unitEntry;
     struct {
       int groupId;
-      int groupSecondaryId;
       struct table *unitTable;
     } groupEntry;
     struct {
@@ -52,16 +50,16 @@ typedef struct table {
   struct table *upperLevel;
 } Table;
 
-Entry *newUnitEntry(int groupId, char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position);
-Entry *newGroupEntry(int groupId, int groupSecondaryId, Table *unitTable);
+Entry *newUnitEntry(char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position);
+Entry *newGroupEntry(int groupId, Table *unitTable);
 Entry *newSideEntry(int groupIdCounter, Table *groupTable);
 
 Table *newTable(Table *upperLevel);
 Entry *enter(Table *table, Sym *sym, Entry *entry);
 Entry *lookup(Table *table, Sym *sym);
 
-void showEntry(Entry *entry);
-void showTable(Table *table);
+void showEntry(Entry *entry, int n);
+void showTable(Table *table, int n);
 
 
 #endif /* _TABLE_H_ */

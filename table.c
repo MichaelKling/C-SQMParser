@@ -14,11 +14,10 @@
 #include "table.h"
 
 
-Entry *newUnitEntry(int groupId, char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position) {
+Entry *newUnitEntry(char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position) {
     Entry *entry;
     entry = (Entry *) allocate(sizeof(Entry));
     entry->kind = ENTRY_KIND_UNIT;
-    entry->u.unitEntry.groupId = groupId;
     entry->u.unitEntry.unitId = unitId;
     entry->u.unitEntry.rankName = rankName;
     entry->u.unitEntry.rankShortName = rankShortName;
@@ -29,12 +28,11 @@ Entry *newUnitEntry(int groupId, char *unitId, char *rankName, char *rankShortNa
     return entry;
 }
 
-Entry *newGroupEntry(int groupId, int groupSecondaryId, Table *unitTable) {
+Entry *newGroupEntry(int groupId, Table *unitTable) {
     Entry *entry;
     entry = (Entry *) allocate(sizeof(Entry));
     entry->kind = ENTRY_KIND_GROUP;
     entry->u.groupEntry.groupId = groupId;
-    entry->u.groupEntry.groupSecondaryId = groupSecondaryId;
     entry->u.groupEntry.unitTable = unitTable;
     return entry;
 }
@@ -127,19 +125,30 @@ Entry *lookup(Table *table, Sym *sym) {
   return NULL;
 }
 
-void showEntry(Entry *entry) {
+static void indent(int n) {
+  int i;
+
+  for (i = 0; i < n; i++) {
+    printf("  ");
+  }
+}
+
+void showEntry(Entry *entry, int n) {
   switch (entry->kind) {
     case ENTRY_KIND_SIDE:
-      printf("side: \n");
-      showSideEntry(entry);
+      indent(n);
+      printf("Side: \n");
+      showSideEntry(entry,++n);
       break;
     case ENTRY_KIND_GROUP:
-      printf("group: \n");
-      showGroupEntry(entry);
+      indent(n);
+      printf("Group: \n");
+      showGroupEntry(entry,++n);
       break;
     case ENTRY_KIND_UNIT:
-      printf("unit: \n");
-      showUnitEntry(entry);
+      indent(n);
+      printf("Unit: \n");
+      showUnitEntry(entry,++n);
       break;
     default:
       error("unknown entry kind %d in showEntry", entry->kind);
@@ -148,17 +157,19 @@ void showEntry(Entry *entry) {
 }
 
 
-static void showBintree(Bintree *bintree) {
+static void showBintree(Bintree *bintree, int n) {
   if (bintree == NULL) {
     return;
   }
-  showBintree(bintree->left);
-  printf("  %-10s --> %s ", symToString(bintree->sym),symToValue(bintree->sym));
-  showEntry(bintree->entry);
-  showBintree(bintree->right);
+  showBintree(bintree->left,n);
+  indent(n);
+  printf("TableEntry: %s --> %s\n", symToString(bintree->sym),symToValue(bintree->sym));
+  showEntry(bintree->entry,n+1);
+  showBintree(bintree->right,n);
 }
 
 
-void showTable(Table *table) {
-  showBintree(table->bintree);
+void showTable(Table *table, int n) {
+  indent(n);printf("Table:\n");
+  showBintree(table->bintree,++n);
 }
