@@ -208,7 +208,8 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
     Absyn *node,*dec;
 
     char *unitId = "";
-    char *rankName = "PRIVATE";
+    char *rankName = "";
+    char *rank = "PRIVATE";
     char *rankShortName = "";
     Sym *classname = NULL;
     boolean isLeader = FALSE;
@@ -224,7 +225,7 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
             case ABSYN_CLASSTY :
             case ABSYN_ARRAYTY : break;  //Just ignore these.
             case ABSYN_STRTY :  if (symToStamp(dec->u.strTy.name) == symToStamp(itemRank)) {
-                                    rankName = strListToString(dec->u.strTy.strList);
+                                    rank = strListToString(dec->u.strTy.strList);
                                 } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemClass)) {
                                     classname = newSym(strListToString(dec->u.strTy.strList));
                                 } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemDescription)) {
@@ -246,22 +247,22 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
     }
 
     if (player) {
-        rankShortName = classnamesGetRankShort(rankName);
-        rankName = classnamesGetRank(rankName);
+        rankShortName = classnamesGetRankShort(rank);
+        rankName = classnamesGetRank(rank);
         if (symToType(classname) == SYM_VEHICLE) {
             classnamesGetPlayerRoles(player,&roles);
             if (roles.Commander) {
-              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rankName,rankShortName,classname,isLeader,description,"Commander") );
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rank,rankName,rankShortName,classname,isLeader,description,"Commander") );
             }
             if (roles.Driver) {
-              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rankName,rankShortName,classname,isLeader,description,"Driver") );
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rank,rankName,rankShortName,classname,isLeader,description,"Driver") );
             }
             if (roles.Gunner) {
-              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rankName,rankShortName,classname,isLeader,description,"Gunner") );
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rank,rankName,rankShortName,classname,isLeader,description,"Gunner") );
             }
 
         } else {
-            enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rankName,rankShortName,classname,isLeader,description,position) );
+            enter(table, vehicleItem->u.classTy.name, newUnitEntry(unitId,rank,rankName,rankShortName,classname,isLeader,description,position) );
         }
     }
 }

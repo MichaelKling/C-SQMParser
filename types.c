@@ -32,6 +32,7 @@ void showGroupEntry(Entry *group, int n) {
 
 void showUnitEntry(Entry *unit, int n) {
     indent(n);printf("UnitId          : %s\n",unit->u.unitEntry.unitId);
+    indent(n);printf("Rank            : %s\n",unit->u.unitEntry.rank);
     indent(n);printf("RankName        : %s\n",unit->u.unitEntry.rankName);
     indent(n);printf("RankShortName   : %s\n",unit->u.unitEntry.rankShortName);
     indent(n);printf("Class           : %s\n",symToString(unit->u.unitEntry.classname));

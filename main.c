@@ -55,8 +55,8 @@ int main(int argc, char *argv[]) {
   Table *globalTable;
   FILE *outFile;
 
-  boolean optionReadStdIn;
-  boolean optionWriteStdOut;
+  boolean optionReadStdIn = TRUE;
+  boolean optionWriteStdOut = TRUE;
 
   /* analyze command line */
   inFileName = NULL;
@@ -116,10 +116,10 @@ int main(int argc, char *argv[]) {
       }
       if (inFileName != NULL) {
         outFileName = argv[i];
-        optionReadStdIn = FALSE;
+        optionWriteStdOut = FALSE;
       } else {
         inFileName = argv[i];
-        optionWriteStdOut = FALSE;
+        optionReadStdIn = FALSE;
       }
     }
   }
@@ -158,6 +158,10 @@ int main(int argc, char *argv[]) {
 
   globalTable = check(progTree, optionTables);
 
+  if (optionTables) {
+    exit(0);
+  }
+
   if (optionWriteStdOut) {
     outFile = stdout;
   } else {
@@ -166,9 +170,9 @@ int main(int argc, char *argv[]) {
   if (outFile == NULL) {
     error("cannot open output file '%s'", outFileName);
   }
-  /*
-  genCode(progTree, globalTable, outFile);
-  */
+
+  genCode(globalTable, outFile);
+
   fclose(outFile);
   return 0;
 }

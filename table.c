@@ -14,11 +14,12 @@
 #include "table.h"
 
 
-Entry *newUnitEntry(char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position) {
+Entry *newUnitEntry(char *unitId, char *rank, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position) {
     Entry *entry;
     entry = (Entry *) allocate(sizeof(Entry));
     entry->kind = ENTRY_KIND_UNIT;
     entry->u.unitEntry.unitId = unitId;
+    entry->u.unitEntry.rank = rank;
     entry->u.unitEntry.rankName = rankName;
     entry->u.unitEntry.rankShortName = rankShortName;
     entry->u.unitEntry.classname = classname;
@@ -51,6 +52,7 @@ Table *newTable(Table *upperLevel) {
 
   table = (Table *) allocate(sizeof(Table));
   table->bintree = NULL;
+  table->size = 0;
   table->upperLevel = upperLevel;
   return table;
 }
@@ -94,6 +96,7 @@ Entry *enter(Table *table, Sym *sym, Entry *entry) {
       }
     }
   }
+  table->size++;
   return entry;
 }
 
@@ -170,6 +173,6 @@ static void showBintree(Bintree *bintree, int n) {
 
 
 void showTable(Table *table, int n) {
-  indent(n);printf("Table:\n");
+  indent(n);printf("Table: (%d items)\n",table->size);
   showBintree(table->bintree,++n);
 }

@@ -18,6 +18,7 @@ typedef struct {
   union {
     struct {
       char *unitId;
+      char *rank;
       char *rankName;
       char *rankShortName;
       Sym *classname;
@@ -47,10 +48,11 @@ typedef struct bintree {
 
 typedef struct table {
   Bintree *bintree;
+  int size;
   struct table *upperLevel;
 } Table;
 
-Entry *newUnitEntry(char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position);
+Entry *newUnitEntry(char *unitId, char *rank, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position);
 Entry *newGroupEntry(int groupId, Table *unitTable);
 Entry *newSideEntry(int groupIdCounter, Table *groupTable);
 
