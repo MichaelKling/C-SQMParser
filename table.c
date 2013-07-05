@@ -64,7 +64,7 @@ Entry *enter(Table *table, Sym *sym, Entry *entry) {
   Bintree *current;
   Bintree *previous;
 
-  key = symToStamp(sym);
+  key = symToCounter(sym);
   newtree = (Bintree *) allocate(sizeof(Bintree));
   newtree->sym = sym;
   newtree->key = key;
@@ -119,7 +119,7 @@ Entry *lookup(Table *table, Sym *sym) {
   unsigned key;
   Entry *entry;
 
-  key = symToStamp(sym);
+  key = symToCounter(sym);
     entry = lookupBintree(table->bintree, key);
     if (entry != NULL) {
       return entry;
@@ -153,7 +153,7 @@ static void showBintree(Bintree *bintree) {
     return;
   }
   showBintree(bintree->left);
-  printf("  %-10s --> ", symToString(bintree->sym));
+  printf("  %-10s --> %s ", symToString(bintree->sym),symToValue(bintree->sym));
   showEntry(bintree->entry);
   showBintree(bintree->right);
 }

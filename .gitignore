@@ -3,6 +3,7 @@ pboExtractor
 *.exe
 *.o
 *.depend
+*.layout
 /sqmParser
 /cpboExtractor.cbp
 /depend.mak

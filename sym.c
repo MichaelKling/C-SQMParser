@@ -15,6 +15,7 @@
 static int hashSize = 0;
 static Sym **buckets;
 static int numEntries;
+static int currentCounter = 0;
 
 static unsigned stamp = 314159265;
 
@@ -145,6 +146,7 @@ Sym *newSym(char *string) {
   p->string = (char *) allocate(strlen(string) + 1);
   strcpy(p->string, string);
   p->stamp = stamp;
+  p->counter = ++currentCounter;
   stamp += 0x9E3779B9;  /* Fibonacci hashing, see Knuth Vol. 3 */
   p->hashValue = hashValue;
   p->next = buckets[n];
@@ -177,3 +179,8 @@ unsigned symToType(Sym *sym) {
 unsigned symToStamp(Sym *sym) {
   return sym->stamp;
 }
+
+unsigned symToCounter(Sym *sym) {
+  return sym->counter;
+}
+

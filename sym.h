@@ -21,6 +21,7 @@ typedef struct sym {
   char *value;          /* optional value of sym, defaults to null */
   unsigned type;        /* optional type of sym, defaults to SYM_NOTYPE */
   unsigned stamp;		/* unique random stamp for external use */
+  unsigned counter;      /* unique counted number for external use */
   unsigned hashValue;		/* hash value of string, internal use */
   struct sym *next;		/* symbol chaining, internal use */
 } Sym;
@@ -32,6 +33,6 @@ char *symToString(Sym *sym);
 char *symToValue(Sym *sym);
 unsigned symToType(Sym *sym);
 unsigned symToStamp(Sym *sym);
-
+unsigned symToCounter(Sym *sym);
 
 #endif /* _SYM_H_ */

@@ -173,7 +173,8 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
     Sym *classname = NULL;
     boolean isLeader = FALSE;
     char *description = "";
-    char *position = NULL;
+    char *position = "";
+    char *player = NULL;
     Roles roles;
 
     node = vehicleItem->u.classTy.decList;
@@ -189,7 +190,7 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
                                 } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemDescription)) {
                                     description = strListToString(dec->u.strTy.strList);
                                 } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemPlayer)) {
-                                    position = strListToString(dec->u.strTy.strList);
+                                    player = strListToString(dec->u.strTy.strList);
                                 }
 
                                break;
@@ -204,27 +205,33 @@ void checkVehicleItem(Absyn *vehicleItem,Table *table) {
         node = node->u.decList.tail;
     }
 
-    if (position) {
+    if (player) {
+
         rankShortName = classnamesGetRankShort(rankName);
         rankName = classnamesGetRank(rankName);
 
-        printf("Item: %s\n",symToString(vehicleItem->u.classTy.name));
-        printf("\tUnitId: %s\n",unitId);
-        printf("\tRank: %s\n",rankName);
-        printf("\tRankShort: %s\n",rankShortName);
-        printf("\tClass: %s\n",symToString(classname));
-        printf("\tClassname: %s\n",symToValue(classname));
-        printf("\tClassType: %d\n",symToType(classname));
-        printf("\tIsLeader: %s\n",(isLeader == TRUE)?"true":"false");
-        printf("\tPlayer: %s\n",position);
-        printf("\tDescription: %s\n",description);
+        if (symToType(classname) == SYM_VEHICLE) {
+            classnamesGetPlayerRoles(player,&roles);
+            if (roles.Commander) {
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(groupId,unitId,rankName,rankShortName,classname,isLeader,description,"Commander") );
+            }
+            if (roles.Driver) {
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(groupId,unitId,rankName,rankShortName,classname,isLeader,description,"Driver") );
+            }
+            if (roles.Gunner) {
+              enter(table, vehicleItem->u.classTy.name, newUnitEntry(groupId,unitId,rankName,rankShortName,classname,isLeader,description,"Gunner") );
+            }
 
-        classnamesGetPlayerRoles(position,&roles);
-        printf("\tPosition: %s\n",position);
-        printf("\tIs Commander: %s\n",(roles.Commander == TRUE)?"true":"false");
-        printf("\tIs Driver: %s\n",(roles.Driver == TRUE)?"true":"false");
-        printf("\tIs Gunner: %s\n",(roles.Gunner == TRUE)?"true":"false");
+        } else {
+            enter(table, vehicleItem->u.classTy.name, newUnitEntry(groupId,unitId,rankName,rankShortName,classname,isLeader,description,position) );
+        }
+
+
+
     }
+
+
+
 }
 
 

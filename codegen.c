@@ -23,6 +23,25 @@ typedef enum { loade, store, reference } Loadestore;
 
 Reg registerStackPointer=7;
 
+        printf("Item: %s\n",symToString(vehicleItem->u.classTy.name));
+        printf("\tUnitId: %s\n",unitId);
+        printf("\tRank: %s\n",rankName);
+        printf("\tRankShort: %s\n",rankShortName);
+        printf("\tClass: %s\n",symToString(classname));
+        printf("\tClassname: %s\n",symToValue(classname));
+        printf("\tClassType: %d\n",symToType(classname));
+        printf("\tIsLeader: %s\n",(isLeader == TRUE)?"true":"false");
+        printf("\tPlayer: %s\n",player);
+        printf("\tDescription: %s\n",description);
+
+        classnamesGetPlayerRoles(player,&roles);
+        printf("\tPosition: %s\n",player);
+        printf("\tIs Commander: %s\n",(roles.Commander == TRUE)?"true":"false");
+        printf("\tIs Driver: %s\n",(roles.Driver == TRUE)?"true":"false");
+        printf("\tIs Gunner: %s\n",(roles.Gunner == TRUE)?"true":"false");
+
+
+
 void assemblerProlog(FILE *outFile) {
   fprintf(outFile, "\t.import\tprinti\n");
   fprintf(outFile, "\t.import\tprintc\n");
