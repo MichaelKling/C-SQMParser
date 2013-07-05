@@ -75,6 +75,8 @@ Absyn *newStrList(Absyn *head, Absyn *tail);
 Absyn *emptyValList(void);
 Absyn *newValList(Absyn *head, Absyn *tail);
 
+char *strListToString(Absyn *strList);
+
 void showAbsyn(Absyn *node);
 
 

@@ -14,7 +14,6 @@
 #include "absyn.h"
 #include "table.h"
 #include "codegen.h"
-#include "varalloc.h"
 #define MAXREG 23
 #define MINREG 7
 
@@ -96,12 +95,12 @@ Prozedurdeklarationen
           Returnadresse + Platz für ausgehende Argumente
 */
   if (procE->u.procEntry.size_out == -1) {
-    framesize = REF_BYTE_SIZE + procE->u.procEntry.size_var; 
+    framesize = REF_BYTE_SIZE + procE->u.procEntry.size_var;
     framepointerpos = 0;
   } else {
     framesize = procE->u.procEntry.size_var + procE->u.procEntry.size_out + REF_BYTE_SIZE + REF_BYTE_SIZE;
     framepointerpos = procE->u.procEntry.size_out + REF_BYTE_SIZE;
-    returnregisterpos = 0 - REF_BYTE_SIZE - REF_BYTE_SIZE - procE->u.procEntry.size_var;  
+    returnregisterpos = 0 - REF_BYTE_SIZE - REF_BYTE_SIZE - procE->u.procEntry.size_var;
   }
 /*
 - Prozedur-Prolog ausgeben (->6.2) ( Label (Procname), Stackframe allokieren, fp
@@ -189,7 +188,7 @@ void genCodeAssignStm(Absyn *assignStm,Table *globalTable, FILE *outFile) {
   incRegisterStackPointer();
   reg2 = getRegisterStackPointer();
   genCodeExp(assignStm->u.assignStm.exp,globalTable,outFile);
-  
+
   fprintf(outFile,"\tstw\t$%d,$%d,0\n",reg2,reg1);
  // genCodeVarExp(assignStm->u.assignStm.var,globalTable,outFile,store);
 
@@ -252,7 +251,7 @@ void genCodeWhileStm(Absyn *whileStm,Table *globalTable, FILE *outFile) {
 
 /*===========================================================================================================================*/
 
-void genCodeCallStm(Absyn *callStm,Table *globalTable, FILE *outFile) { 
+void genCodeCallStm(Absyn *callStm,Table *globalTable, FILE *outFile) {
   Absyn *expList = callStm->u.callStm.args;
   ParamTypes *paramtypes;
   int counter = 0;
@@ -264,8 +263,8 @@ void genCodeCallStm(Absyn *callStm,Table *globalTable, FILE *outFile) {
 
   paramtypes = lookup(globalTable,callStm->u.callStm.name)->u.procEntry.paramTypes;
   while (!expList->u.expList.isEmpty) {
-    incRegisterStackPointer(); 
-    if (paramtypes->isRef) { 
+    incRegisterStackPointer();
+    if (paramtypes->isRef) {
       genCodeVarExp(expList->u.expList.head,globalTable,outFile,reference);
     } else {
       genCodeExp(expList->u.expList.head,globalTable,outFile);
@@ -380,14 +379,14 @@ void genCodeVarExp(Absyn *varExp,Table *globalTable, FILE *outFile, Loadestore f
       default : showAbsyn(varExp);error("genCodeVarExp unerwartetes Element gefunden.");
   }
 
-  if(flag==store) 
-  { 
+  if(flag==store)
+  {
     fprintf(outFile, "\tstw\t$%d,$%d,0\n",getRegisterStackPointer(),getRegisterStackPointer());
-  } 
+  }
   else if (flag==loade)
-  { 
-    fprintf(outFile, "\tldw\t$%d,$%d,0\n",getRegisterStackPointer(),getRegisterStackPointer()); 
-  } 
+  {
+    fprintf(outFile, "\tldw\t$%d,$%d,0\n",getRegisterStackPointer(),getRegisterStackPointer());
+  }
   else if (flag==reference) {
   } else {
     error("Unknown flag in genCodeVarExp");
@@ -415,7 +414,7 @@ void genCodeIntExp(Absyn *intExp,Table *globalTable, FILE *outFile) {
 
 /*===========================================================================================================================*/
 
-void genCodeSimpleVar(Absyn *simpleVar,Table *globalTable, FILE *outFile) { 
+void genCodeSimpleVar(Absyn *simpleVar,Table *globalTable, FILE *outFile) {
   int offset,reg;
   boolean isRef;
   Entry *varE;
@@ -428,19 +427,19 @@ void genCodeSimpleVar(Absyn *simpleVar,Table *globalTable, FILE *outFile) {
   isRef = varE->u.varEntry.isRef;
   reg = getRegisterStackPointer();
 
-  fprintf(outFile, "\tadd\t$%d,$25,%d\n",reg,offset); 
+  fprintf(outFile, "\tadd\t$%d,$25,%d\n",reg,offset);
   if (isRef) {
-    fprintf(outFile, "\tldw\t$%d,$%d,0\n",reg,reg);    
+    fprintf(outFile, "\tldw\t$%d,$%d,0\n",reg,reg);
   }
-//    struct { 
-//      Sym *name; 
-//    } simpleVar; 
+//    struct {
+//      Sym *name;
+//    } simpleVar;
 }
 
 /*===========================================================================================================================*/
 
 
-typedef struct typeStack { 
+typedef struct typeStack {
   Type *element;
   struct typeStack* prev;
 } TypeStack;
@@ -448,7 +447,7 @@ typedef struct typeStack {
 TypeStack *genCodeArrayVar_typeStack;
 void pushTypeStack(TypeStack **stack,Type *element) {
   TypeStack *new = (TypeStack*)malloc(sizeof(TypeStack));
-  new->element = element; 
+  new->element = element;
   new->prev = (*stack);
   (*stack) = new;
 }
@@ -456,7 +455,7 @@ void pushTypeStack(TypeStack **stack,Type *element) {
 Type *popTypeStack(TypeStack **stack) {
   Type *element;
   TypeStack *old;
-  if (stack == NULL) { 
+  if (stack == NULL) {
     error("popTypeStack: NULL Pointer Stack");
     return NULL;
   }
@@ -473,14 +472,14 @@ void genCodeArrayVarCalc(TypeStack *types,Absyn *var,int indices,Reg baseReg,Tab
     return;
   }
 
-  if (types == NULL) { 
+  if (types == NULL) {
     error("genCodeArrayVarCalc: Invalid Type.");
   }
   type = popTypeStack(&types);
   if (type->kind == TYPE_KIND_PRIMITIVE) {
     error("genCodeArrayVarCalc: Invalid Type - Primitive.");
-  } 
- 
+  }
+
   genCodeArrayVarCalc(types, var->u.arrayVar.var, indices * type->u.arrayType.size, baseReg,globalTable,outFile);
 
   // Hole Index und Speicher ihn auf eine Hilfsvariable (register)
@@ -494,7 +493,7 @@ void genCodeArrayVarCalc(TypeStack *types,Absyn *var,int indices,Reg baseReg,Tab
   // index pruefung
   fprintf(outFile, "\tbgeu\t$%d,$%d,_indexError\n",getRegisterStackPointer()-1,getRegisterStackPointer());
   fprintf(outFile, "\tmul\t$%d,$%d,%d\n",getRegisterStackPointer()-1,getRegisterStackPointer()-1,indices);
-  
+
   decRegisterStackPointer();
   fprintf(outFile, "\tadd\t$%d,$%d,$%d\n",baseReg,baseReg,getRegisterStackPointer());
   decRegisterStackPointer();
@@ -534,7 +533,7 @@ void genCodeArrayVar(Absyn *arrayVar,Table *globalTable, FILE *outFile, Loadesto
   fprintf(outFile,"\tadd\t$%d,$25,%d\n",getRegisterStackPointer(),loc);
 
   if (entry->u.varEntry.isRef) {
-    fprintf(outFile, "\tldw\t$%d,$%d,0\n",getRegisterStackPointer(),getRegisterStackPointer());    
+    fprintf(outFile, "\tldw\t$%d,$%d,0\n",getRegisterStackPointer(),getRegisterStackPointer());
   }
 
   genCodeArrayVarCalc(types,arrayVar,INT_BYTE_SIZE,getRegisterStackPointer(),globalTable,outFile);
@@ -620,9 +619,9 @@ Reg getRegisterStackPointer(void)
 
 /*===========================================================================================================================*/
 
-int genLabel(void) { 
-  static int lblNum = 0; 
-  return lblNum++; 
+int genLabel(void) {
+  static int lblNum = 0;
+  return lblNum++;
 }
 
 /*===========================================================================================================================*/

@@ -149,6 +149,48 @@ Absyn *newValList(Absyn *head, Absyn *tail) {
 }
 
 
+char *strListToString(Absyn *strList) {
+    Absyn *node,*dec;
+    unsigned strLength;
+    unsigned strPos;
+    char *newStr;
+
+    strLength = 0;
+    strPos = 0;
+    node = strList;
+
+    if (node->u.strList.isEmpty) {
+        return "";
+    }
+
+    if (node->u.strList.tail->u.strList.isEmpty) {
+        return symToString(node->u.strList.head->u.str.value);
+    }
+
+    while (!node->u.strList.isEmpty) {
+        dec = node->u.strList.head;
+        strLength += strlen(symToString(dec->u.str.value));
+        node = node->u.strList.tail;
+        if (!node->u.strList.isEmpty) {
+            strLength += 1;
+        }
+    }
+    newStr = (char *) allocate((strLength +1) * sizeof(char));
+
+    node = strList;
+    while (!node->u.strList.isEmpty) {
+        dec = node->u.strList.head;
+        strcpy(newStr + strPos,symToString(dec->u.str.value));
+        strPos += strlen(symToString(dec->u.str.value));
+        node = node->u.strList.tail;
+        if (!node->u.strList.isEmpty) {
+            newStr[++strPos] = '\"';
+        }
+    }
+    newStr[++strPos] = 0;
+    return newStr;
+}
+
 /**************************************************************/
 
 
@@ -256,6 +298,9 @@ static void showDecList(Absyn *node, int n) {
 static void showStrList(Absyn *node, int n) {
   indent(n);
   say("StrList(");
+  say("\n");
+  say(strListToString(node));
+  say("\n");
   while (!node->u.decList.isEmpty) {
     say("\n");
     showNode(node->u.decList.head, n + 1);
@@ -265,6 +310,7 @@ static void showStrList(Absyn *node, int n) {
     }
   }
   say(")");
+
 }
 
 static void showValList(Absyn *node, int n) {

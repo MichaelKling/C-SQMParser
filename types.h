@@ -6,40 +6,11 @@
 #ifndef _TYPESX_H_
 #define _TYPESX_H_
 
+#include "table.h"
 
-#define TYPE_KIND_PRIMITIVE	0
-#define TYPE_KIND_ARRAY		1
-
-typedef struct type {
-  int kind;
-  union {
-    struct {
-      char *printName;
-    } primitiveType;
-    struct {
-      int size;
-      struct type *baseType;
-    } arrayType;
-  } u;
-} Type;
-
-
-typedef struct paramtypes {
-  boolean isEmpty;
-  Type *type;
-  boolean isRef;
-  struct paramtypes *next;
-} ParamTypes;
-
-
-Type *newPrimitiveType(char *printName);
-Type *newArrayType(int size, Type *baseType);
-
-ParamTypes *emptyParamTypes(void);
-ParamTypes *newParamTypes(Type *type, boolean isRef, ParamTypes *next);
-
-void showType(Type *type);
-void showParamTypes(ParamTypes *paramTypes);
+void showSideEntry(Entry *side);
+void showGroupEntry(Entry *group);
+void showUnitEntry(Entry *unit);
 
 
 #endif /* _TYPES_H_ */

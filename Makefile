@@ -8,8 +8,8 @@ FLEX = flex
 CFLAGS = -Wall -Wno-unused -g
 LDFLAGS = -g
 LDLIBS = -lm
-# semant.c varalloc.c codegen.c
-SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c types.c table.c classnames/classnames.c
+#  codegen.c
+SRCS = main.c utils.c parser.tab.c lex.yy.c absyn.c sym.c types.c table.c classnames/classnames.c semant.c
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 BIN = sqmParser
 
@@ -37,6 +37,7 @@ depend:	parser.tab.c lex.yy.c
 
 clean:
 		rm -f *~ *.o
+		rm -f ./classnames/*~ ./classnames/*.o
 		rm lex.yy.c
 		rm parser.tab.c
 

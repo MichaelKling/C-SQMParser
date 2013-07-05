@@ -16,8 +16,8 @@
 #include "parser.h"
 #include "table.h"
 #include "semant.h"
-#include "varalloc.h"
 #include "codegen.h"
+#include "classnames/classnames.h"
 
 
 #define VERSION		"0.1"
@@ -152,10 +152,12 @@ int main(int argc, char *argv[]) {
   if (optionAbsyn) {
     showAbsyn(progTree);
     exit(0);
-  }/*
+  }
+
+  classnamesCreateAll();
+
   globalTable = check(progTree, optionTables);
-  allocVars(progTree, globalTable, optionVars);
-  */
+
   if (optionWriteStdOut) {
     outFile = stdout;
   } else {

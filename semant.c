@@ -14,33 +14,228 @@
 #include "absyn.h"
 #include "table.h"
 #include "semant.h"
+#include "classnames/classnames.h"
 
-/*######################################################################################*/
-/* Public: */
-// Globaler boolean Typ (Grundtyp)
-Entry *boolType = NULL;
-//Globaler integer Typ (Grundtyp)
-Entry *intType = NULL;
-//Programmeinstiegspunkt Name (Zum suchen des main Symbols in der abstrakten Syntax)
-Sym *symMain = NULL;
-
-/*######################################################################################*/
-/* Funktionen zur Fehlerausgabe */ 
-void errorMsgRedeclarationEntry(Sym *sym,Entry *entry,int line);
-void errorMsgRedeclarationParam(Sym *sym,int line);
-void errorMsgRedeclaration(Sym *sym,char *type,int line);
 void errorMsgUnknownElement(int line);
 
-/*######################################################################################*/
-/* Funktionen zur syntaktischen Analyse*/
+Sym *missionClass, *groupsClass, *vehiclesClass, *itemId, *itemRank, *itemClass, *itemLeader, *itemDescription, *itemSide, *itemPlayer;
+
+Table *check(Absyn *program, boolean showSymbolTables);
+void checkMission(Absyn *mission,Table *table);
+void checkGroups(Absyn *groups,Table *table);
+void checkGroupItem(Absyn *groupItem,Table *table);
+void checkVehicles(Absyn *vehicles,Table *table);
+void checkVehicleItem(Absyn *vehicleItem,Table *table);
+
+
+
+Table *check(Absyn *program, boolean showSymbolTables) {
+  Table *globalTable = NULL;
+  Absyn *node,*dec;
+
+  missionClass = newSym("Mission");
+  groupsClass = newSym("Groups");
+  vehiclesClass = newSym("Vehicles");
+  itemId = newSym("id");
+  itemRank = newSym("rank");
+  itemClass = newSym("vehicle");
+  itemLeader = newSym("leader");
+  itemDescription = newSym("description");
+  itemPlayer = newSym("player");
+  itemSide = newSym("side");
+
+  globalTable = newTable(NULL);
+
+  // Globale Symboltabelle erstellen + semantik Analyse
+  node = program;
+  while (!node->u.decList.isEmpty) {
+    dec = node->u.decList.head;
+    switch (dec->type) {
+      case ABSYN_CLASSTY : if (symToStamp(dec->u.classTy.name) == symToStamp(missionClass)) {
+                                checkMission(dec,globalTable);
+                           }
+                           //Else ignore
+                           break;
+
+      case ABSYN_ARRAYTY :
+      case ABSYN_STRTY :
+      case ABSYN_NUMTY : break; //Just ignore these.
+      default : errorMsgUnknownElement(dec->line);
+    }
+    node = node->u.decList.tail;
+  }
+
+   // Ausgeben der Tabelle
+   if (showSymbolTables) {
+     printf("symbol table:\n");
+     showTable(globalTable);
+   }
+
+  // return global symbol table
+  return globalTable;
+}
+
+void checkMission(Absyn *mission,Table *table) {
+    Absyn *node,*dec;
+
+    node = mission->u.classTy.decList;
+    while (!node->u.decList.isEmpty) {
+        dec = node->u.decList.head;
+        switch (dec->type) {
+            case ABSYN_CLASSTY : if (symToStamp(dec->u.classTy.name) == symToStamp(groupsClass)) {
+                                    checkGroups(dec,table);
+                                 } else if (symToStamp(dec->u.classTy.name) == symToStamp(vehiclesClass)) {
+                                    checkVehicles(dec,table);
+                                 }
+                               //Else ignore
+                               break;
+
+            case ABSYN_ARRAYTY :
+            case ABSYN_STRTY :
+            case ABSYN_NUMTY : break; //Just ignore these.
+            default : errorMsgUnknownElement(dec->line);
+        }
+        node = node->u.decList.tail;
+    }
+}
+
+void checkGroups(Absyn *groups,Table *table) {
+    Absyn *node,*dec;
+
+    node = groups->u.classTy.decList;
+    while (!node->u.decList.isEmpty) {
+        dec = node->u.decList.head;
+        switch (dec->type) {
+            case ABSYN_CLASSTY :
+                               checkGroupItem(dec,table);
+                               break;
+
+            case ABSYN_ARRAYTY :
+            case ABSYN_STRTY :
+            case ABSYN_NUMTY : break; //Just ignore these.
+            default : errorMsgUnknownElement(dec->line);
+        }
+        node = node->u.decList.tail;
+    }
+}
+
+void checkGroupItem(Absyn *groupItem,Table *table) {
+    Absyn *node,*dec;
+
+    node = groupItem->u.classTy.decList;
+    while (!node->u.decList.isEmpty) {
+        dec = node->u.decList.head;
+        switch (dec->type) {
+            case ABSYN_CLASSTY :
+                               if (symToStamp(dec->u.classTy.name) == symToStamp(vehiclesClass)) {
+                                    checkVehicles(dec,table);
+                               }
+                               break;
+
+            case ABSYN_ARRAYTY :
+            case ABSYN_STRTY :
+            case ABSYN_NUMTY : break; //Just ignore these.
+            default : errorMsgUnknownElement(dec->line);
+        }
+        node = node->u.decList.tail;
+    }
+}
+
+
+void checkVehicles(Absyn *vehicles,Table *table) {
+
+    Absyn *node,*dec;
+
+    node = vehicles->u.classTy.decList;
+    while (!node->u.decList.isEmpty) {
+        dec = node->u.decList.head;
+        switch (dec->type) {
+            case ABSYN_CLASSTY :
+                               checkVehicleItem(dec,table);
+                               break;
+
+            case ABSYN_ARRAYTY :
+            case ABSYN_STRTY :
+            case ABSYN_NUMTY : break; //Just ignore these.
+            default : errorMsgUnknownElement(dec->line);
+        }
+        node = node->u.decList.tail;
+    }
+}
+
+void checkVehicleItem(Absyn *vehicleItem,Table *table) {
+    Absyn *node,*dec;
+
+    int groupId = -1;
+    char *unitId = "";
+    char *rankName = "PRIVATE";
+    char *rankShortName = "";
+    Sym *classname = NULL;
+    boolean isLeader = FALSE;
+    char *description = "";
+    char *position = NULL;
+    Roles roles;
+
+    node = vehicleItem->u.classTy.decList;
+    while (!node->u.decList.isEmpty) {
+        dec = node->u.decList.head;
+        switch (dec->type) {
+            case ABSYN_CLASSTY :
+            case ABSYN_ARRAYTY : break;  //Just ignore these.
+            case ABSYN_STRTY :  if (symToStamp(dec->u.strTy.name) == symToStamp(itemRank)) {
+                                    rankName = strListToString(dec->u.strTy.strList);
+                                } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemClass)) {
+                                    classname = newSym(strListToString(dec->u.strTy.strList));
+                                } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemDescription)) {
+                                    description = strListToString(dec->u.strTy.strList);
+                                } else if (symToStamp(dec->u.strTy.name) == symToStamp(itemPlayer)) {
+                                    position = strListToString(dec->u.strTy.strList);
+                                }
+
+                               break;
+            case ABSYN_NUMTY : if (symToStamp(dec->u.numTy.name) == symToStamp(itemId)) {
+                                    unitId = symToString(dec->u.numTy.value->u.num.value);
+                                } else if (symToStamp(dec->u.numTy.name) == symToStamp(itemLeader)) {
+                                    isLeader = (strcmp(symToString(dec->u.numTy.value->u.num.value),"1") == 0);
+                                }
+                                break;
+            default : errorMsgUnknownElement(dec->line);
+        }
+        node = node->u.decList.tail;
+    }
+
+    if (position) {
+        rankShortName = classnamesGetRankShort(rankName);
+        rankName = classnamesGetRank(rankName);
+
+        printf("Item: %s\n",symToString(vehicleItem->u.classTy.name));
+        printf("\tUnitId: %s\n",unitId);
+        printf("\tRank: %s\n",rankName);
+        printf("\tRankShort: %s\n",rankShortName);
+        printf("\tClass: %s\n",symToString(classname));
+        printf("\tClassname: %s\n",symToValue(classname));
+        printf("\tClassType: %d\n",symToType(classname));
+        printf("\tIsLeader: %s\n",(isLeader == TRUE)?"true":"false");
+        printf("\tPlayer: %s\n",position);
+        printf("\tDescription: %s\n",description);
+
+        classnamesGetPlayerRoles(position,&roles);
+        printf("\tPosition: %s\n",position);
+        printf("\tIs Commander: %s\n",(roles.Commander == TRUE)?"true":"false");
+        printf("\tIs Driver: %s\n",(roles.Driver == TRUE)?"true":"false");
+        printf("\tIs Gunner: %s\n",(roles.Gunner == TRUE)?"true":"false");
+    }
+}
+
+
+/*
 
 //Hauptaufruf zur syntaktischen Analyse. Erwartet den Wurzelknoten der abstrakten Syntax
 //und ein Flag ob er erstellte Symboltabellen ausgeben kann.
-//Funktion bricht bei Fehlerhafter Semantik (aber korrekter Syntax) mit einer 
+//Funktion bricht bei Fehlerhafter Semantik (aber korrekter Syntax) mit einer
 //Fehlermeldung ab.
 //Bei ungueltiger Syntax ist der korrekte Programmablauf nicht gesichert.
 //Zuruekgegeben wird die erstellte globale Symboltabelle
-Table *check(Absyn *program, boolean showSymbolTables);
 
 //Pruefen von Typdefinitionen
 Type *checkType(Absyn *typeDec,Table *table);
@@ -59,84 +254,7 @@ void checkTest(Absyn *test,Table *table);
 //Eintragen der vordefinierten Typen und Funktionen
 void writeDefaultEntrys(Table *globalTable);
 
-/*######################################################################################*/
-/* Implementierung der Semantikanalyse */
 
-Table *check(Absyn *program, boolean showSymbolTables) {
-  Table *globalTable = NULL;
-  Entry *mainProc = NULL;
-  Absyn *node,*dec;
-  Entry *prevDec,*currDec;
-
-  // Erstellen der Basistypen 
-  if (boolType == NULL) boolType = newTypeEntry(newPrimitiveType("bool"));
-  if (intType == NULL) intType = newTypeEntry(newPrimitiveType("int"));
-  if (symMain == NULL) symMain = newSym("main");
-
-  //Erstellen der globalen Symboltabelle
-  globalTable = newTable(NULL);
-
-  // Dem Programmierer verfuegbare Basistypen in die Symboltabelle eintragen
-  writeDefaultEntrys(globalTable);
-
-  // Globale Symboltabelle erstellen + semantik Analyse
-  node = program;
-  while (!node->u.decList.isEmpty) {
-    dec = node->u.decList.head;
-    switch (dec->type) {
-      case ABSYN_TYPEDEC : prevDec = lookup(globalTable, dec->u.typeDec.name);
-                           if (prevDec != NULL) {
-                                errorMsgRedeclarationEntry(dec->u.typeDec.name,prevDec,dec->line);
-			   }
-                           enter(globalTable, dec->u.typeDec.name, newTypeEntry(checkType(dec->u.typeDec.ty,globalTable)) );
-                           break;
-      case ABSYN_PROCDEC : prevDec = lookup(globalTable, dec->u.procDec.name);
-                           if (prevDec != NULL) {
-                                errorMsgRedeclarationEntry(dec->u.typeDec.name,prevDec,dec->line);
-			   }
-                           currDec = checkProc(dec,globalTable,TRUE);
-                           if (symToStamp(symMain) == symToStamp(dec->u.procDec.name)) { 
-                             mainProc = currDec; 
-                           }
-                           enter(globalTable, dec->u.procDec.name, currDec );
-                           break;
-      default : errorMsgUnknownElement(dec->line);
-    }   
-    node = node->u.decList.tail;
-  }
-  
-  // zweiter durchlauf durch die procedur ruempfe/lokale tabellen + semantik
-  node = program;
-  while (!node->u.decList.isEmpty) {
-    dec = node->u.decList.head;
-    switch (dec->type) {
-      case ABSYN_TYPEDEC : break;
-      case ABSYN_PROCDEC : currDec = checkProc(dec,globalTable,FALSE);
-
-                           /* Ausgeben der Tabelle */
-                           if (showSymbolTables) {
-                             printf("symbol table at end of procedure '%s':\n",symToString(dec->u.procDec.name));
-                             showTable(currDec->u.procEntry.localTable);
-                           }
-                           break;
-      default : errorMsgUnknownElement(dec->line);
-    }   
-    node = node->u.decList.tail;
-  }
-
-
-  /* check if "main()" is present */
-  if (mainProc == NULL) { error("procedure 'main' is missing or not a procedure"); }  
-  /* pruefen ob main eine procedure ist */
-  if (mainProc->kind != ENTRY_KIND_PROC) { error("'main' is not a procedure"); } 
-  /* pruefen ob main parameter erwartet */    
-  if (!mainProc->u.procEntry.paramTypes->isEmpty) { error("procedure 'main' must not have any parameters"); }
-
-  /* return global symbol table */
-  return globalTable;
-}
-
-/*--------------------------------------------------------------------------------------*/
 
 Type *checkType(Absyn *typeDec,Table *table) {
   Entry *entry;
@@ -148,19 +266,17 @@ Type *checkType(Absyn *typeDec,Table *table) {
                        }
                        if (entry->kind != ENTRY_KIND_TYPE) {
                          error("'%s' is not a type in line %d",symToString(typeDec->u.nameTy.name),typeDec->line);
-                       }	
+                       }
                        return entry->u.typeEntry.type;
                        break;
     case ABSYN_ARRAYTY:	if (typeDec->u.arrayTy.size < 0) error("illegal index size in line %d",typeDec->line);
                         return newArrayType(typeDec->u.arrayTy.size,checkType(typeDec->u.arrayTy.ty,table));
-                        break;  
+                        break;
     default : errorMsgUnknownElement(typeDec->line);
-  }   	
+  }
   error("program intern error");
   return NULL;
 }
-
-/*--------------------------------------------------------------------------------------*/
 
 //Hilfsfunktion um Parameterliste rekursive aufzubauen (Reihenfolge umdrehen)
 ParamTypes *checkProcHelperBuildParam(Absyn *paramlist,Table *table) {
@@ -171,10 +287,10 @@ ParamTypes *checkProcHelperBuildParam(Absyn *paramlist,Table *table) {
   if (paramlist->u.decList.isEmpty) { return emptyParamTypes(); }
 
   pt = checkProcHelperBuildParam(paramlist->u.decList.tail,table);
-	  
+
   param = paramlist->u.decList.head;
   type = checkType(param->u.parDec.ty,table);
-  
+
   if ((type->kind == TYPE_KIND_ARRAY) && (!param->u.parDec.isRef)) {
     error("parameter '%s' must be a reference parameter in line %d",symToString(param->u.parDec.name),param->line);
   }
@@ -184,7 +300,7 @@ ParamTypes *checkProcHelperBuildParam(Absyn *paramlist,Table *table) {
     errorMsgRedeclarationParam(param->u.parDec.name,param->line);
   }
 
-  enter(table, param->u.parDec.name, newVarEntry(type,param->u.parDec.isRef) ); 
+  enter(table, param->u.parDec.name, newVarEntry(type,param->u.parDec.isRef) );
 
   return newParamTypes(type, param->u.parDec.isRef, pt);
 }
@@ -193,8 +309,8 @@ Entry *checkProc(Absyn *procDec,Table *table,boolean firstLook) {
   Type *type;
   Entry *prevDec;
   Table *localTable;
-  /* zwischen erstdurchlauf (nur kopf und parameter durchsuchen) und
-  zweitdurchlauf (prozedurrumpf untersuchen) muss unterschieden werden */
+  // zwischen erstdurchlauf (nur kopf und parameter durchsuchen) und
+  // zweitdurchlauf (prozedurrumpf untersuchen) muss unterschieden werden
   if (firstLook) {
         Absyn *paramlist = procDec->u.procDec.params;
   	ParamTypes *paramtypes = NULL;
@@ -202,57 +318,36 @@ Entry *checkProc(Absyn *procDec,Table *table,boolean firstLook) {
 
   	localTable = newTable(table);
 
-	/* Parameterlist pruefen */
+	// Parameterlist pruefen *
         paramtypes = checkProcHelperBuildParam(paramlist,localTable);
-/* Funktioniert nicht, da Parameter falsch herum in die Tabelle eingelesen werden. 
-        ParamTypes *paramtypes = emptyParamTypes();
-
-	while (!paramlist->u.decList.isEmpty) {
-	param = paramlist->u.decList.head;
-	
-	type = checkType(param->u.parDec.ty,table);
-	
-	prevDec = lookup(localTable, param->u.parDec.name);
-	if (prevDec != NULL && prevDec->kind == ENTRY_KIND_VAR) {
-          errorMsgRedeclarationParam(param->u.parDec.name,param->line);
-	}
-	enter(localTable, param->u.parDec.name, newVarEntry(type,param->u.parDec.isRef) ); 
-	
-	paramtypes = newParamTypes(type, param->u.parDec.isRef, paramtypes);
-	
-	paramlist = paramlist->u.decList.tail;
-	}
-*/	
 	return newProcEntry(paramtypes, localTable);
   } else {
     Absyn *declist = procDec->u.procDec.decls;
     Absyn *dec;
 
-    /* die im ersten durchlauf generierte Symboltabelle holen */
+    // die im ersten durchlauf generierte Symboltabelle holen
     Entry *proc = lookup(table, procDec->u.procDec.name);
     localTable = proc->u.procEntry.localTable;
 
-    /* Lokale Variablen pruefen */ 
+    // Lokale Variablen pruefen
     while (!declist->u.decList.isEmpty) {
 	dec = declist->u.decList.head;
 	type = checkType(dec->u.parDec.ty,localTable);
-	
+
 	prevDec = lookup(localTable, dec->u.parDec.name);
 	if (prevDec != NULL && prevDec->kind == ENTRY_KIND_VAR) {
           errorMsgRedeclarationEntry(dec->u.parDec.name,prevDec,dec->line);
 	}
-	enter(localTable, dec->u.parDec.name, newVarEntry(type,dec->u.parDec.isRef) ); 
-	
+	enter(localTable, dec->u.parDec.name, newVarEntry(type,dec->u.parDec.isRef) );
+
 	declist = declist->u.decList.tail;
     }
-    
-    /* Prozedur Rumpf durchlaufen */
+
+    // Prozedur Rumpf durchlaufen
     checkStmList(procDec->u.procDec.body,localTable);
     return proc;
   }
 }
-
-/*--------------------------------------------------------------------------------------*/
 
 void checkStmList(Absyn *stmlist,Table *table) {
   while (!stmlist->u.stmList.isEmpty) {
@@ -261,7 +356,6 @@ void checkStmList(Absyn *stmlist,Table *table) {
   }
 }
 
-/*--------------------------------------------------------------------------------------*/
 
 void checkStm(Absyn *stm,Table *table) {
     switch (stm->type) {
@@ -271,20 +365,20 @@ void checkStm(Absyn *stm,Table *table) {
                               Type *type = checkVar(stm->u.assignStm.var,table);
                               if (type->kind != TYPE_KIND_PRIMITIVE) {
 				error("assignment requires integer variable in line  %d",stm->line);
-			      } 
-                              if (type != checkExp(stm->u.assignStm.exp,table)) { 
+			      }
+                              if (type != checkExp(stm->u.assignStm.exp,table)) {
                                 error("assignment has different types in line %d",stm->line);
                               }
                             }
                             break;
-      case ABSYN_IFSTM: checkTest(stm->u.ifStm.test,table); 
-                        checkStm(stm->u.ifStm.thenPart,table); 
-                        checkStm(stm->u.ifStm.elsePart,table); 
+      case ABSYN_IFSTM: checkTest(stm->u.ifStm.test,table);
+                        checkStm(stm->u.ifStm.thenPart,table);
+                        checkStm(stm->u.ifStm.elsePart,table);
                         break;
-      case ABSYN_WHILESTM: checkTest(stm->u.whileStm.test,table); 
-                           checkStm(stm->u.whileStm.body,table); 
+      case ABSYN_WHILESTM: checkTest(stm->u.whileStm.test,table);
+                           checkStm(stm->u.whileStm.body,table);
                            break;
-      case ABSYN_CALLSTM: { 
+      case ABSYN_CALLSTM: {
                             Entry *proc = lookup(table, stm->u.callStm.name);
                             ParamTypes *paramtypes;
                             Absyn *args;
@@ -304,9 +398,9 @@ void checkStm(Absyn *stm,Table *table) {
                               if (paramtypes->isRef) {
                                 if ( args->u.expList.head->type != ABSYN_VAREXP ) {
                                   error("procedure '%s' argument %d must be a variable in line %d",symToString(stm->u.callStm.name),argc,stm->line);
-                                } 
+                                }
                               }
-                              if (checkExp( args->u.expList.head,table ) != paramtypes->type) { 
+                              if (checkExp( args->u.expList.head,table ) != paramtypes->type) {
 			        error("procedure '%s' argument %d type mismatch in line %d",symToString(stm->u.callStm.name),argc,stm->line);
                               }
                               paramtypes = paramtypes->next;
@@ -326,7 +420,6 @@ void checkStm(Absyn *stm,Table *table) {
     return;
 }
 
-/*--------------------------------------------------------------------------------------*/
 
 Type *checkVar(Absyn *var,Table *table) {
  Type *type;
@@ -338,9 +431,9 @@ Type *checkVar(Absyn *var,Table *table) {
                             }
                             if (entry->kind != ENTRY_KIND_VAR) {
                               error("'%s' is not a variable in line %d",symToString(var->u.simpleVar.name),var->line);
-                            } 
+                            }
                             type = entry->u.varEntry.type;
-                          }  
+                          }
                          break;
    case ABSYN_ARRAYVAR : type = checkVar(var->u.arrayVar.var,table);
                          if (type->kind != TYPE_KIND_ARRAY) {
@@ -350,156 +443,70 @@ Type *checkVar(Absyn *var,Table *table) {
                          }
                          if (checkExp(var->u.arrayVar.index,table) != intType->u.typeEntry.type) {
                            error("illegal indexing with a non-integer in line %d",var->line);
-                         } 
+                         }
                          break;
    default : errorMsgUnknownElement(var->line);
  }
  return type;
 }
 
-/*--------------------------------------------------------------------------------------*/
 
 void checkTest(Absyn *test,Table *table) {
   if (test->type != ABSYN_OPEXP) {
-    error("'if'/'while' test expression must be of type boolean in line %d",test->line);		 
+    error("'if'/'while' test expression must be of type boolean in line %d",test->line);
   }
   switch (test->u.opExp.op) {
-	case ABSYN_OP_EQU :		
-	case ABSYN_OP_NEQ :		
-	case ABSYN_OP_LST :		
-	case ABSYN_OP_LSE : 		
-	case ABSYN_OP_GRT :		
-	case ABSYN_OP_GRE : { 
+	case ABSYN_OP_EQU :
+	case ABSYN_OP_NEQ :
+	case ABSYN_OP_LST :
+	case ABSYN_OP_LSE :
+	case ABSYN_OP_GRT :
+	case ABSYN_OP_GRE : {
 			Type *type = checkExp(test->u.opExp.left,table);
 			if (type->kind != TYPE_KIND_PRIMITIVE) {
 				error("comparison requires integer operands in line %d",test->line);
-			} 
+			}
 			if (type != checkExp(test->u.opExp.right,table)) {
 				error("expression combines different types in line %d",test->line);
 			}
-                       } 
+                       }
                        break;
-	default : error("'if'/'while' test expression must be of type boolean in line %d",test->line);		 
+	default : error("'if'/'while' test expression must be of type boolean in line %d",test->line);
   }
 }
 
-/*--------------------------------------------------------------------------------------*/
 
 Type *checkExp(Absyn *exp,Table *table) {
   Type *type;
   switch (exp->type) {
       case ABSYN_OPEXP : switch (exp->u.opExp.op) {
-                      case ABSYN_OP_ADD : 
-                      case ABSYN_OP_SUB : 
-                      case ABSYN_OP_MUL : 
+                      case ABSYN_OP_ADD :
+                      case ABSYN_OP_SUB :
+                      case ABSYN_OP_MUL :
                       case ABSYN_OP_DIV : type = checkExp(exp->u.opExp.left,table);
                                      if (type->kind != TYPE_KIND_PRIMITIVE) {
                                        error("arithmetic operation requires integer operands in line %d",exp->line);
-                                     } 
+                                     }
                                      if (type != checkExp(exp->u.opExp.right,table)) {
 				       error("expression combines different types in line %d",exp->line);
-				     } 
+				     }
                                      break;
                       default : error("compares are not allowed in arithmetic operations in line %d",exp->line);
                     }
                     break;
       case ABSYN_VAREXP : type = checkVar(exp->u.varExp.var,table);
                      break;
-      case ABSYN_INTEXP : type = intType->u.typeEntry.type; 
+      case ABSYN_INTEXP : type = intType->u.typeEntry.type;
                      break;
       default :errorMsgUnknownElement(exp->line);
   }
   return type;
 }
 
-void writeDefaultEntrys(Table *globalTable) {
-  Table *localTable;
-  ParamTypes *paramtypes;
 
-  //Lokale Tabelle wird immer leergelassen. 
-  localTable = newTable(globalTable);
+*/
 
-  //Type: int
-  enter(globalTable, newSym("int"), intType);
-  
-  //exit()
-  enter(globalTable, newSym("exit"), newProcEntry(paramtypes, localTable));
-  
-  paramtypes = emptyParamTypes();
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-
-  //printi(i: int)
-  enter(globalTable, newSym("printi"), newProcEntry(paramtypes, localTable));
-  //printc(i: int)
-  enter(globalTable, newSym("printc"), newProcEntry(paramtypes, localTable));
-  //clearAll(i: int)
-  enter(globalTable, newSym("clearAll"), newProcEntry(paramtypes, localTable));
-
-  paramtypes = emptyParamTypes();
-  paramtypes = newParamTypes(intType->u.typeEntry.type, TRUE, paramtypes);
-
-  //readi(ref i: int)
-  enter(globalTable, newSym("readi"), newProcEntry(paramtypes, localTable));
-  //readc(ref i: int)
-  enter(globalTable, newSym("readc"), newProcEntry(paramtypes, localTable));
-  //time(ref i: int)
-  enter(globalTable, newSym("time"), newProcEntry(paramtypes, localTable));
-
-  paramtypes = emptyParamTypes();
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-
-  //setPixel(x: int, y: int, color: int)
-  enter(globalTable, newSym("setPixel"), newProcEntry(paramtypes, localTable));
-  
-  paramtypes = emptyParamTypes();
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-
-  //drawLine(x1: int, y1: int, x2: int, y2: int, color: int)
-  enter(globalTable, newSym("drawLine"), newProcEntry(paramtypes, localTable));
-
-  paramtypes = emptyParamTypes();
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-  paramtypes = newParamTypes(intType->u.typeEntry.type, FALSE, paramtypes);
-
-  //drawCircle(x0: int, y0: int, radius: int, color: int)
-  enter(globalTable, newSym("drawCircle"), newProcEntry(paramtypes, localTable));
-}
-
-/*######################################################################################*/
-/* Implementierung der Fehlerausgaben */
-
-char *errorMsgType = "type";
-char *errorMsgProcedure = "procedure";
-char *errorMsgParameter = "parameter";
-char *errorMsgVariable = "variable";
-
-void errorMsgRedeclarationEntry(Sym *sym,Entry *entry,int line) {
-  char *type;
-  switch (entry->kind) {
-   case ENTRY_KIND_TYPE : type = errorMsgType; break;
-   case ENTRY_KIND_VAR : type = errorMsgVariable; break;
-   case ENTRY_KIND_PROC : type = errorMsgProcedure; break;
-   default : error("datatypes not consistent");
-  }
-  errorMsgRedeclaration(sym,type,line);
-}
-void errorMsgRedeclarationParam(Sym *sym,int line) {
-  errorMsgRedeclaration(sym,errorMsgParameter,line);
-}
-void errorMsgRedeclaration(Sym *sym,char *type,int line) {
-  error("redeclaration of '%s' as %s in line %d",symToString(sym),type,line);
-}
 
 void errorMsgUnknownElement(int line) {
   error("unknown element in line %d",line);
 }
-
-/*######################################################################################*/

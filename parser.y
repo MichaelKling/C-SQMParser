@@ -89,7 +89,7 @@ numval : NUMBERLIT_DEC { $$ = newNum(yylval.noVal.line,newSym(yytext)); }
 stringlist : string { $$ = newStrList($1,emptyStrList()); }
            | string stringlist { $$ = newStrList($1,$2); }
 
-string : STRINGLIT { $$ = newStr(yylval.noVal.line,newSym(yytext)); }
+string : STRINGLIT { yytext[strlen(yytext)-1] = '\0'; yytext++; $$ = newStr(yylval.noVal.line,newSym(yytext)); }
 
 valuelist : /*empty*/ { $$ = emptyValList();}
           | valuelist1 { $$ = $1; }

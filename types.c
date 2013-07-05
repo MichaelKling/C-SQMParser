@@ -10,76 +10,30 @@
 #include "common.h"
 #include "utils.h"
 #include "types.h"
+#include "sym.h"
 
 
-Type *newPrimitiveType(char *printName) {
-  Type *type;
+void showSideEntry(Entry *side) {
+    printf("GroupIDCounter  : %d",side->u.sideEntry.groupIdCounter);
+    showTable(side->u.sideEntry.groupTable);
+}
 
-  type = (Type *) allocate(sizeof(Type));
-  type->kind = TYPE_KIND_PRIMITIVE;
-  type->u.primitiveType.printName = printName;
-  return type;
+void showGroupEntry(Entry *group) {
+    printf("GroupID         : %d",group->u.groupEntry.groupId);
+    printf("GroupIDSecId    : %d",group->u.groupEntry.groupSecondaryId);
+    showTable(group->u.groupEntry.unitTable);
+}
+
+void showUnitEntry(Entry *unit) {
+    printf("GroupID         : %d",unit->u.unitEntry.groupId);
+    printf("UnitId          : %s",unit->u.unitEntry.unitId);
+    printf("RankName        : %s",unit->u.unitEntry.rankName);
+    printf("RankShortName   : %s",unit->u.unitEntry.rankShortName);
+    printf("Class           : %s",symToString(unit->u.unitEntry.classname));
+    printf("Classname       : %s",symToValue(unit->u.unitEntry.classname));
+    printf("isLeader        : %d",unit->u.unitEntry.isLeader);
+    printf("description     : %s",unit->u.unitEntry.description);
+    printf("position        : %s",unit->u.unitEntry.position);
 }
 
 
-Type *newArrayType(int size, Type *baseType) {
-  Type *type;
-
-  type = (Type *) allocate(sizeof(Type));
-  type->kind = TYPE_KIND_ARRAY;
-  type->u.arrayType.size = size;
-  type->u.arrayType.baseType = baseType;
-  return type;
-}
-
-
-ParamTypes *emptyParamTypes(void) {
-  ParamTypes *paramTypes;
-
-  paramTypes = (ParamTypes *) allocate(sizeof(ParamTypes));
-  paramTypes->isEmpty = TRUE;
-  return paramTypes;
-}
-
-
-ParamTypes *newParamTypes(Type *type, boolean isRef, ParamTypes *next) {
-  ParamTypes *paramTypes;
-
-  paramTypes = (ParamTypes *) allocate(sizeof(ParamTypes));
-  paramTypes->isEmpty = FALSE;
-  paramTypes->type = type;
-  paramTypes->isRef = isRef;
-  paramTypes->next = next;
-  return paramTypes;
-}
-
-
-void showType(Type *type) {
-  switch (type->kind) {
-    case TYPE_KIND_PRIMITIVE:
-      printf("%s", type->u.primitiveType.printName);
-      break;
-    case TYPE_KIND_ARRAY:
-      printf("array [%d] of ", type->u.arrayType.size);
-      showType(type->u.arrayType.baseType);
-      break;
-    default:
-      error("unknown type kind %d in showType", type->kind);
-  }
-}
-
-
-void showParamTypes(ParamTypes *paramTypes) {
-  printf("(");
-  while (!paramTypes->isEmpty) {
-    if (paramTypes->isRef) {
-      printf("ref ");
-    }
-    showType(paramTypes->type);
-    paramTypes = paramTypes->next;
-    if (!paramTypes->isEmpty) {
-      printf(", ");
-    }
-  }
-  printf(")");
-}

@@ -14,35 +14,37 @@
 #include "table.h"
 
 
-Entry *newTypeEntry(Type *type) {
-  Entry *entry;
-
-  entry = (Entry *) allocate(sizeof(Entry));
-  entry->kind = ENTRY_KIND_TYPE;
-  entry->u.typeEntry.type = type;
-  return entry;
+Entry *newUnitEntry(int groupId, char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position) {
+    Entry *entry;
+    entry = (Entry *) allocate(sizeof(Entry));
+    entry->kind = ENTRY_KIND_UNIT;
+    entry->u.unitEntry.groupId = groupId;
+    entry->u.unitEntry.unitId = unitId;
+    entry->u.unitEntry.rankName = rankName;
+    entry->u.unitEntry.rankShortName = rankShortName;
+    entry->u.unitEntry.classname = classname;
+    entry->u.unitEntry.isLeader = isLeader;
+    entry->u.unitEntry.description = description;
+    entry->u.unitEntry.position = position;
+    return entry;
 }
 
-
-Entry *newVarEntry(Type *type, boolean isRef) {
-  Entry *entry;
-
-  entry = (Entry *) allocate(sizeof(Entry));
-  entry->kind = ENTRY_KIND_VAR;
-  entry->u.varEntry.type = type;
-  entry->u.varEntry.isRef = isRef;
-  return entry;
+Entry *newGroupEntry(int groupId, int groupSecondaryId, Table *unitTable) {
+    Entry *entry;
+    entry = (Entry *) allocate(sizeof(Entry));
+    entry->kind = ENTRY_KIND_GROUP;
+    entry->u.groupEntry.groupId = groupId;
+    entry->u.groupEntry.groupSecondaryId = groupSecondaryId;
+    entry->u.groupEntry.unitTable = unitTable;
+    return entry;
 }
-
-
-Entry *newProcEntry(ParamTypes *paramTypes, Table *localTable) {
-  Entry *entry;
-
-  entry = (Entry *) allocate(sizeof(Entry));
-  entry->kind = ENTRY_KIND_PROC;
-  entry->u.procEntry.paramTypes = paramTypes;
-  entry->u.procEntry.localTable = localTable;
-  return entry;
+Entry *newSideEntry(int groupIdCounter, Table *groupTable) {
+    Entry *entry;
+    entry = (Entry *) allocate(sizeof(Entry));
+    entry->kind = ENTRY_KIND_SIDE;
+    entry->u.sideEntry.groupIdCounter = groupIdCounter;
+    entry->u.sideEntry.groupTable = groupTable;
+    return entry;
 }
 
 
@@ -118,33 +120,26 @@ Entry *lookup(Table *table, Sym *sym) {
   Entry *entry;
 
   key = symToStamp(sym);
-  while (table != NULL) {
     entry = lookupBintree(table->bintree, key);
     if (entry != NULL) {
       return entry;
     }
-    table = table->upperLevel;
-  }
   return NULL;
 }
 
-
 void showEntry(Entry *entry) {
   switch (entry->kind) {
-    case ENTRY_KIND_TYPE:
-      printf("type: ");
-      showType(entry->u.typeEntry.type);
+    case ENTRY_KIND_SIDE:
+      printf("side: \n");
+      showSideEntry(entry);
       break;
-    case ENTRY_KIND_VAR:
-      printf("var: ");
-      if (entry->u.varEntry.isRef) {
-        printf("ref ");
-      }
-      showType(entry->u.varEntry.type);
+    case ENTRY_KIND_GROUP:
+      printf("group: \n");
+      showGroupEntry(entry);
       break;
-    case ENTRY_KIND_PROC:
-      printf("proc: ");
-      showParamTypes(entry->u.procEntry.paramTypes);
+    case ENTRY_KIND_UNIT:
+      printf("unit: \n");
+      showUnitEntry(entry);
       break;
     default:
       error("unknown entry kind %d in showEntry", entry->kind);
@@ -165,13 +160,5 @@ static void showBintree(Bintree *bintree) {
 
 
 void showTable(Table *table) {
-  int level;
-
-  level = 0;
-  while (table != NULL) {
-    printf("  level %d\n", level);
-    showBintree(table->bintree);
-    table = table->upperLevel;
-    level++;
-  }
+  showBintree(table->bintree);
 }

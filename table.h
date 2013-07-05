@@ -6,30 +6,35 @@
 #ifndef _TABLE_H_
 #define _TABLE_H_
 
-#define ENTRY_KIND_TYPE		0
-#define ENTRY_KIND_VAR		1
-#define ENTRY_KIND_PROC		2
+#define ENTRY_KIND_SIDE		0
+#define ENTRY_KIND_GROUP    1
+#define ENTRY_KIND_UNIT		2
 
 #include "types.h"
+#include "sym.h"
 
 typedef struct {
   int kind;
   union {
     struct {
-      Type *type;
-    } typeEntry;
+      int groupId;
+      char *unitId;
+      char *rankName;
+      char *rankShortName;
+      Sym *classname;
+      boolean isLeader;
+      char *description;
+      char *position;
+    } unitEntry;
     struct {
-      Type *type;
-      boolean isRef;
-      int loc; //fp/sp +/- loc = Position im Stack
-    } varEntry;
+      int groupId;
+      int groupSecondaryId;
+      struct table *unitTable;
+    } groupEntry;
     struct {
-      ParamTypes *paramTypes;
-      struct table *localTable;
-      int size_arg; //Size of argument area
-      int size_var; //Size of local var area
-      int size_out; //Size of outgoing area
-    } procEntry;
+      int groupIdCounter;
+      struct table *groupTable;
+    } sideEntry;
   } u;
 } Entry;
 
@@ -47,10 +52,9 @@ typedef struct table {
   struct table *upperLevel;
 } Table;
 
-
-Entry *newTypeEntry(Type *type);
-Entry *newVarEntry(Type *type, boolean isRef);
-Entry *newProcEntry(ParamTypes *paramTypes, Table *localTable);
+Entry *newUnitEntry(int groupId, char *unitId, char *rankName, char *rankShortName, Sym *classname, boolean isLeader, char *description,char *position);
+Entry *newGroupEntry(int groupId, int groupSecondaryId, Table *unitTable);
+Entry *newSideEntry(int groupIdCounter, Table *groupTable);
 
 Table *newTable(Table *upperLevel);
 Entry *enter(Table *table, Sym *sym, Entry *entry);
