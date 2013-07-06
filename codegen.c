@@ -24,9 +24,9 @@ void genCodeUnits(Bintree *bintree, FILE *outFile, int *unitId);
 void genCodeUnit(Sym *name, Entry *unit,FILE *outFile, int unitId);
 
 void genCode(Table *globalTable, FILE *outFile) {
-  fprintf(outFile, "$result = array()\n");
+  fprintf(outFile, "$result = array();\n");
   genCodeSides(globalTable->bintree,outFile);
-  fprintf(outFile, "return $result\n");
+  fprintf(outFile, "return $result;\n");
 }
 
 void genCodeSides(Bintree *bintree, FILE *outFile) {
